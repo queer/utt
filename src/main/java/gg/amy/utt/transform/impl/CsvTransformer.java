@@ -1,11 +1,13 @@
 package gg.amy.utt.transform.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import gg.amy.utt.transform.Transformer;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,12 +18,12 @@ import java.util.Map;
  */
 public class CsvTransformer implements Transformer {
     private static final CsvMapper MAPPER = new CsvMapper();
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @Override
     public Object transformInput(final String input) {
         try {
-            final var out = MAPPER.readerFor(Object.class).with(CsvSchema.emptySchema().withHeader()).readValues(input).readAll();
-            return out;
+            return MAPPER.readerFor(Object.class).with(CsvSchema.emptySchema().withHeader()).readValues(input).readAll();
         } catch(final IOException e) {
             throw new IllegalStateException(e);
         }
@@ -33,7 +35,7 @@ public class CsvTransformer implements Transformer {
         // attempt to figure it out for Jackson to use.
 
         final var schemaBuilder = CsvSchema.builder();
-        if(input instanceof Iterable) {
+        if(input instanceof Iterable || input instanceof Map) {
             // We can have two main types of data, lists and
             // objects. Any other data structure, when serialised,
             // will convert down into one of these two primitives.
@@ -66,13 +68,39 @@ public class CsvTransformer implements Transformer {
                     schemaBuilder.addColumn(key);
                 }
             }
+            // TODO: Other iterables?
         }
 
         final var schema = schemaBuilder.build().withHeader();
         try {
-            return MAPPER.writerFor(input.getClass()).with(schema).writeValueAsString(input);
+            // HACK: Serialise complex objects into a usable form
+            final Object out;
+            if(input instanceof Map map) {
+                out = flatten(map);
+            } else {
+                out = input;
+            }
+            return MAPPER.writerFor(input.getClass()).with(schema).writeValueAsString(out);
         } catch(final JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private Map<Object, Object> flatten(final Map<?, ?> input) {
+        final var out = new LinkedHashMap<>();
+        input.forEach((k, v) -> {
+            // If v is a non-primitive, flatten it into JSON
+            if(v != null && !(v instanceof String) && !(v instanceof Number) && !(v instanceof Boolean)) {
+                try {
+                    out.put(k, JSON_MAPPER.writeValueAsString(v));
+                } catch(final JsonProcessingException e) {
+                    throw new IllegalStateException(e);
+                }
+            } else {
+                // If v is primitive, add directly
+                out.put(k, v);
+            }
+        });
+        return out;
     }
 }
