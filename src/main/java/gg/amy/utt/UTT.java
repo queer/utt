@@ -99,7 +99,7 @@ public final class UTT {
         Object transformationTarget = INPUT_TRANSFORMERS.get(ctx.input()).transformInput(ctx, data);
 
         // Extract from transformed input as needed
-        if(ctx.extractionPath() != null) {
+        if(ctx.extractionPath() != null && !ctx.extractionPath().isEmpty() && !ctx.extractionPath().equals("/")) {
             if(!ctx.extractionPath().startsWith("/")) {
                 throw new IllegalArgumentException("--extract must start with /");
             }
