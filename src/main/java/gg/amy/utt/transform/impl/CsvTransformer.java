@@ -7,10 +7,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import gg.amy.utt.transform.Transformer;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author amy
@@ -52,10 +49,10 @@ public class CsvTransformer implements Transformer {
                     }
                     schemaBuilder.addColumn(key);
                 }
-            } else if(input instanceof List) {
+            } else {
                 // If `input` is a list, extract keys from all maps
                 final var keys = new LinkedHashSet<String>();
-                for(final var o : (List<?>) input) {
+                for(final var o : (Iterable<?>) input) {
                     if(o instanceof Map) {
                         ((Map<?, ?>) o).keySet()
                                 .stream()
@@ -77,6 +74,8 @@ public class CsvTransformer implements Transformer {
             final Object out;
             if(input instanceof Map map) {
                 out = flatten(map);
+            } else if(input instanceof List list) {
+                out = flatten(list);
             } else {
                 out = input;
             }
@@ -84,6 +83,18 @@ public class CsvTransformer implements Transformer {
         } catch(final JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private List<Object> flatten(final Collection<?> input) {
+        final var out = new ArrayList<>(input.size());
+        input.forEach(o -> {
+            if(o instanceof Map) {
+                out.add(flatten((Map<?, ?>) o));
+            } else {
+                out.add(o);
+            }
+        });
+        return out;
     }
 
     private Map<Object, Object> flatten(final Map<?, ?> input) {
