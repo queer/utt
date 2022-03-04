@@ -16,7 +16,7 @@ public class PlainTransformerTest {
     @Test
     public void testTransform() {
         final Transformer transformer = new PlainTransformer();
-        final var ctx = new TransformationContext(InputFormat.PLAIN, OutputFormat.PLAIN, null);
+        final var ctx = new TransformationContext(InputFormat.PLAIN, OutputFormat.PLAIN, null, null);
         assertEquals("abc", transformer.transformOutput(ctx,  transformer.transformInput(ctx, "abc")));
     }
 }

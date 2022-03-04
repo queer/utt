@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 public record TransformationContext(
         @Nonnull InputFormat input,
         @Nonnull OutputFormat output,
-        @Nullable String extractionPath
+        @Nullable String extractionPath,
+        @Nullable String mapper
 ) {
 }
