@@ -9,12 +9,17 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
+import org.graalvm.polyglot.proxy.ProxyObject;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
@@ -130,42 +135,190 @@ public final class UTT {
         }
 
         if(ctx.mapper() != null) {
-            try(@Nonnull final Context graal = Context.create("js")) {
+            try(@Nonnull final Context graal = Context.newBuilder("js")
+                    .allowHostAccess(HostAccess.newBuilder()
+                            .allowListAccess(true)
+                            .allowArrayAccess(true)
+                            .build())
+                    .build()) {
                 final List<Value> results;
                 final boolean isList = transformationTarget instanceof List;
                 if(transformationTarget instanceof Map) {
-                    graal.getBindings("js").putMember("$", transformationTarget);
+                    graal.getBindings("js").putMember("$", makeFake(transformationTarget));
                     results = List.of(graal.eval("js", ctx.mapper()));
                 } else if(transformationTarget instanceof List<?> list) {
                     results = list.stream().map(o -> {
-                        graal.getBindings("js").putMember("$", o);
+                        if(o instanceof Map || o instanceof List) {
+                            graal.getBindings("js").putMember("$", makeFake(o));
+                        } else if(o instanceof String || o instanceof Number || o instanceof Boolean) {
+                            graal.getBindings("js").putMember("$", o);
+                        } else {
+                            graal.getBindings("js").putMember("$", makeFake(o));
+                        }
                         return graal.eval("js", ctx.mapper());
                     }).toList();
                 } else {
-                    graal.getBindings("js").putMember("$", transformationTarget);
+                    graal.getBindings("js").putMember("$", makeFake(transformationTarget));
                     results = List.of(graal.eval("js", ctx.mapper()));
                 }
                 final var cleanResults = results.stream().map(value -> {
-                   if(value.isBoolean()) {
-                       return value.asBoolean();
-                   } else if(value.isNumber()) {
-                       return value.asDouble();
-                   } else if(value.isNull()) {
-                       return null;
-                   } else if(value.isString()) {
-                       return value.asString();
-                   } else {
-                       return value.asHostObject();
-                   }
+                    if(value.isBoolean()) {
+                        return value.asBoolean();
+                    } else if(value.isNumber()) {
+                        return value.asDouble();
+                    } else if(value.isNull()) {
+                        return null;
+                    } else if(value.isString()) {
+                        return value.asString();
+                    } else if(value.isHostObject()) {
+                        return value.asHostObject();
+                    } else if(value.isProxyObject()) {
+                        return value.asProxyObject();
+                    } else if(value.hasMembers()) {
+                        return value.as(Map.class);
+                    } else if(value.hasArrayElements()) {
+                        return value.as(ArrayList.class);
+                    } else {
+                        throw new IllegalArgumentException("Unsupported result type: " + value.getClass().getName());
+                    }
                 }).toList();
                 if(isList) {
-                    transformationTarget = cleanResults;
+                    transformationTarget = fromPolyglot(cleanResults);
                 } else {
-                    transformationTarget = cleanResults.get(0);
+                    transformationTarget = fromPolyglot(cleanResults.get(0));
                 }
             }
         }
 
         return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
+    }
+
+    private static Object fromPolyglot(@Nonnull final Object polyglot) {
+        if(polyglot instanceof Map map) {
+            final Map<Object, Object> out = new LinkedHashMap<>();
+            for(final Entry<?, ?> entry : ((Map<?, ?>) map).entrySet()) {
+                out.put(fromPolyglot(entry.getKey()), fromPolyglot(entry.getValue()));
+            }
+            return out;
+        } else if(polyglot instanceof List list) {
+            final Collection<Object> out = new ArrayList<>();
+            for(final Object o : (List<?>) list) {
+                out.add(fromPolyglot(o));
+            }
+            return out;
+        } else {
+            return polyglot;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object makeFake(@Nonnull final Object object) {
+        if(object instanceof Map map) {
+            return new FakeMap(map);
+        } else if(object instanceof List list) {
+            return new FakeList(list);
+        } else {
+            return new FakeObject(object);
+        }
+    }
+
+    private static Object makeFake(@Nonnull final Object object, final boolean noObjects) {
+        if(object instanceof Map map) {
+            return new FakeMap(map);
+        } else if(object instanceof List list) {
+            return new FakeList(list);
+        } else {
+            if(noObjects) {
+                return object;
+            } else {
+                return new FakeObject(object);
+            }
+        }
+    }
+
+    private record FakeObject(Object delegate) implements ProxyObject {
+        private FakeObject(@Nonnull final Object delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Object getMember(@Nonnull final String key) {
+            try {
+                final var field = delegate.getClass().getDeclaredField(key);
+                field.setAccessible(true);
+                return makeFake(field.get(delegate), true);
+            } catch(final IllegalAccessException | NoSuchFieldException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        @Override
+        public Object getMemberKeys() {
+            return Arrays.stream(delegate.getClass().getDeclaredFields()).map(Field::getName).toList();
+        }
+
+        @Override
+        public boolean hasMember(final String key) {
+            //noinspection unchecked
+            return ((List<String>) getMemberKeys()).contains(key);
+        }
+
+        @Override
+        public void putMember(final String key, final Value value) {
+            try {
+                final var field = delegate.getClass().getDeclaredField(key);
+                field.setAccessible(true);
+                field.set(delegate, value.asHostObject());
+            } catch(final IllegalAccessException | NoSuchFieldException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
+    private record FakeMap(Map<String, Object> delegate) implements ProxyObject {
+        private FakeMap(@Nonnull final Map<String, Object> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Object getMember(final String key) {
+            return makeFake(delegate.get(key), true);
+        }
+
+        @Override
+        public Object getMemberKeys() {
+            return delegate.keySet().stream().toList();
+        }
+
+        @Override
+        public boolean hasMember(final String key) {
+            return delegate.containsKey(key);
+        }
+
+        @Override
+        public void putMember(final String key, final Value value) {
+            delegate.put(key, value.asHostObject());
+        }
+    }
+
+    private record FakeList(List<Object> delegate) implements ProxyArray {
+        private FakeList(@Nonnull final List<Object> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Object get(final long index) {
+            return makeFake(delegate.get((int) index), true);
+        }
+
+        @Override
+        public void set(final long index, final Value value) {
+            delegate.set((int) index, value.asHostObject());
+        }
+
+        @Override
+        public long getSize() {
+            return delegate.size();
+        }
     }
 }
