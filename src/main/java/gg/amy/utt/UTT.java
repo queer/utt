@@ -2,6 +2,7 @@ package gg.amy.utt;
 
 import gg.amy.utt.data.InputFormat;
 import gg.amy.utt.data.OutputFormat;
+import gg.amy.utt.transform.TransformationContext;
 import gg.amy.utt.transform.Transformer;
 import gg.amy.utt.transform.impl.CsvTransformer;
 import gg.amy.utt.transform.impl.JsonTransformer;
@@ -11,12 +12,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +39,7 @@ public final class UTT {
     private UTT() {
     }
 
-    public static void main(final String[] args) {
+    public static void main(@Nonnull final String[] args) {
         final var options = new Options();
         final var inputTypes = Arrays.stream(InputFormat.values())
                 .map(s -> s.name().toLowerCase(Locale.ENGLISH))
@@ -50,44 +49,77 @@ public final class UTT {
                 .collect(Collectors.joining(", "));
         options.addOption("i", "input", true, "Format of input. All types: " + inputTypes);
         options.addOption("o", "output", true, "Format of output. All types: " + outputTypes);
+        options.addOption("e", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
 
         final var parser = new DefaultParser();
         final InputFormat input;
         final OutputFormat output;
+        final String extractionPath;
         try {
             final var cmd = parser.parse(options, args);
             input = InputFormat.valueOf(cmd.getOptionValue("input").toUpperCase(Locale.ROOT));
             output = OutputFormat.valueOf(cmd.getOptionValue("output").toUpperCase(Locale.ROOT));
-        } catch(final Exception e) {
+            extractionPath = cmd.getOptionValue("extract");
+        } catch(@Nonnull final Exception e) {
             final var helper = new HelpFormatter();
             helper.printHelp("utt", options);
             return;
         }
 
+        final var ctx = new TransformationContext(input, output, extractionPath);
+
         try {
-            // TODO: Streaming someday
-            final var inputData = new StringBuilder();
-            try(final var bis = new BufferedInputStream(System.in)) {
-                try(final var scanner = new Scanner(bis)) {
-                    while(scanner.hasNextLine()) {
-                        inputData.append(scanner.nextLine()).append('\n');
-                    }
-                }
-            }
-
-            final var data = inputData.toString();
-
-            if(!INPUT_TRANSFORMERS.containsKey(input)) {
-                throw new IllegalArgumentException("Unknown input transformer: " + input);
-            }
-            final Object transformationTarget = INPUT_TRANSFORMERS.get(input).transformInput(data);
-
-            if(!OUTPUT_TRANSFORMERS.containsKey(output)) {
-                throw new IllegalArgumentException("Unknown output transformer: " + output);
-            }
-            System.out.println(OUTPUT_TRANSFORMERS.get(output).transformOutput(transformationTarget));
-        } catch(final IOException e) {
+            final var data = collectInput();
+            System.out.println(runExtraction(ctx, data));
+        } catch(@Nonnull final IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static String collectInput() throws IOException {
+        // TODO: Streaming someday
+        final var inputData = new StringBuilder();
+        try(@Nonnull final var bis = new BufferedInputStream(System.in)) {
+            try(@Nonnull final var scanner = new Scanner(bis)) {
+                while(scanner.hasNextLine()) {
+                    inputData.append(scanner.nextLine()).append('\n');
+                }
+            }
+        }
+        return inputData.toString();
+    }
+
+    public static String runExtraction(@Nonnull final TransformationContext ctx, @Nonnull final String data) {
+        if(!INPUT_TRANSFORMERS.containsKey(ctx.input())) {
+            throw new IllegalArgumentException("Unknown input transformer: " + ctx.input());
+        }
+        Object transformationTarget = INPUT_TRANSFORMERS.get(ctx.input()).transformInput(ctx, data);
+
+        // Extract from transformed input as needed
+        if(ctx.extractionPath() != null) {
+            if(!ctx.extractionPath().startsWith("/")) {
+                throw new IllegalArgumentException("--extract must start with /");
+            }
+            final var path = ctx.extractionPath().substring(1).split("/");
+            for(final var segment : path) {
+                try {
+                    if(transformationTarget instanceof final Map map) {
+                        transformationTarget = map.get(segment);
+                    } else if(transformationTarget instanceof final List list) {
+                        final var index = Integer.parseInt(segment);
+                        transformationTarget = list.get(index);
+                    }
+                } catch(@Nonnull final Throwable t) {
+                    throw new IllegalArgumentException("Error parsing --extract path at segment /" + segment + '/', t);
+                }
+            }
+        }
+
+        // Transform output
+        if(!OUTPUT_TRANSFORMERS.containsKey(ctx.output())) {
+            throw new IllegalArgumentException("Unknown output transformer: " + ctx.output());
+        }
+
+        return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
     }
 }

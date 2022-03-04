@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import gg.amy.utt.transform.TransformationContext;
 import gg.amy.utt.transform.Transformer;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 
@@ -17,8 +19,9 @@ public class CsvTransformer implements Transformer {
     private static final CsvMapper MAPPER = new CsvMapper();
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
+    @Nonnull
     @Override
-    public Object transformInput(final String input) {
+    public Object transformInput(@Nonnull final TransformationContext ctx, @Nonnull final String input) {
         try {
             return MAPPER.readerFor(Object.class).with(CsvSchema.emptySchema().withHeader()).readValues(input).readAll();
         } catch(final IOException e) {
@@ -26,8 +29,9 @@ public class CsvTransformer implements Transformer {
         }
     }
 
+    @Nonnull
     @Override
-    public String transformOutput(final Object input) {
+    public String transformOutput(@Nonnull final TransformationContext ctx, @Nonnull final Object input) {
         // Writing to a CSV is tricky. Jackson can't automatically determine the schema, so we have to
         // attempt to figure it out for Jackson to use.
 
@@ -85,7 +89,7 @@ public class CsvTransformer implements Transformer {
         }
     }
 
-    private List<Object> flatten(final Collection<?> input) {
+    private List<Object> flatten(@Nonnull final Collection<?> input) {
         final var out = new ArrayList<>(input.size());
         input.forEach(o -> {
             if(o instanceof Map) {
@@ -97,7 +101,7 @@ public class CsvTransformer implements Transformer {
         return out;
     }
 
-    private Map<Object, Object> flatten(final Map<?, ?> input) {
+    private Map<Object, Object> flatten(@Nonnull final Map<?, ?> input) {
         final var out = new LinkedHashMap<>();
         input.forEach((k, v) -> {
             // If v is a non-primitive, flatten it into JSON
