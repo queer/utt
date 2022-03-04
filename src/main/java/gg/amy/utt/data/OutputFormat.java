@@ -9,4 +9,7 @@ public enum OutputFormat {
     XML,
     CSV,
     YAML,
+    PROPERTIES,
+    TOML,
+    PLAIN,
 }

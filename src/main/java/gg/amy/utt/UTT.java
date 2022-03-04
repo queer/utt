@@ -4,10 +4,7 @@ import gg.amy.utt.data.InputFormat;
 import gg.amy.utt.data.OutputFormat;
 import gg.amy.utt.transform.TransformationContext;
 import gg.amy.utt.transform.Transformer;
-import gg.amy.utt.transform.impl.CsvTransformer;
-import gg.amy.utt.transform.impl.JsonTransformer;
-import gg.amy.utt.transform.impl.XmlTransformer;
-import gg.amy.utt.transform.impl.YamlTransformer;
+import gg.amy.utt.transform.impl.*;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
@@ -27,13 +24,19 @@ public final class UTT {
             InputFormat.CSV, new CsvTransformer(),
             InputFormat.JSON, new JsonTransformer(),
             InputFormat.XML, new XmlTransformer(),
-            InputFormat.YAML, new YamlTransformer()
+            InputFormat.YAML, new YamlTransformer(),
+            InputFormat.PLAIN, new PlainTransformer(),
+            InputFormat.PROPERTIES, new PropertiesTransformer(),
+            InputFormat.TOML, new TomlTransformer()
     );
     private static final Map<OutputFormat, Transformer> OUTPUT_TRANSFORMERS = Map.of(
             OutputFormat.CSV, new CsvTransformer(),
             OutputFormat.JSON, new JsonTransformer(),
             OutputFormat.XML, new XmlTransformer(),
-            OutputFormat.YAML, new YamlTransformer()
+            OutputFormat.YAML, new YamlTransformer(),
+            OutputFormat.PLAIN, new PlainTransformer(),
+            OutputFormat.PROPERTIES, new PropertiesTransformer(),
+            OutputFormat.TOML, new TomlTransformer()
     );
 
     private UTT() {

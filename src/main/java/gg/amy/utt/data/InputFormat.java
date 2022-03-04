@@ -9,4 +9,7 @@ public enum InputFormat {
     XML,
     CSV,
     YAML,
+    PROPERTIES,
+    TOML,
+    PLAIN,
 }
