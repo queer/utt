@@ -46,6 +46,7 @@ public final class UTT {
     }
 
     public static void main(@Nonnull final String[] args) {
+        // TODO: Figure out enabling GraalVM JIT: https://docs.oracle.com/en/graalvm/enterprise/22/docs/reference-manual/js/RunOnJDK/
         System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
         final var options = new Options();
         final var inputTypes = Arrays.stream(InputFormat.values())

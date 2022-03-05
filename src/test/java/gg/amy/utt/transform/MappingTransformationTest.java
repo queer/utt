@@ -39,4 +39,40 @@ public class MappingTransformationTest {
         final var out = UTT.runExtraction(ctx, "{\"key\": {\"key2\": \"value\"}}");
         assertEquals("\"value\"", out);
     }
+
+    @Test
+    public void testArrayObjectNestingWorks() {
+        final var ctx = new TransformationContext(InputFormat.JSON, OutputFormat.JSON, null, "$.data");
+        final var out = UTT.runExtraction(ctx, """
+                [
+                    {
+                        "data": [
+                            {
+                                "key": "value"
+                            },
+                            {
+                                "key": "value2"
+                            },
+                            {
+                                "key": "value3"
+                            }
+                        ]
+                    },
+                    {
+                        "data": [
+                            {
+                                "key": "value4"
+                            },
+                            {
+                                "key": "value5"
+                            },
+                            {
+                                "key": "value6"
+                            }
+                        ]
+                    }
+                ]
+                """);
+        assertEquals("[[{\"key\":\"value\"},{\"key\":\"value2\"},{\"key\":\"value3\"}],[{\"key\":\"value4\"},{\"key\":\"value5\"},{\"key\":\"value6\"}]]", out);
+    }
 }

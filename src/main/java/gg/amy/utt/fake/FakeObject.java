@@ -1,10 +1,15 @@
 package gg.amy.utt.fake;
 
-import gg.amy.utt.UTT;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import gg.amy.utt.fake.FakeObject.Serializer;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +18,7 @@ import java.util.List;
  * @author amy
  * @since 3/4/22.
  */
+@JsonSerialize(using = Serializer.class)
 public record FakeObject(Object delegate) implements ProxyObject {
     public FakeObject(@Nonnull final Object delegate) {
         this.delegate = delegate;
@@ -48,6 +54,31 @@ public record FakeObject(Object delegate) implements ProxyObject {
             field.set(delegate, value.asHostObject());
         } catch(final IllegalAccessException | NoSuchFieldException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    public static final class Serializer extends StdSerializer<FakeObject> {
+        public Serializer() {
+            this(FakeObject.class);
+        }
+
+        public Serializer(final Class<FakeObject> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(@Nonnull final FakeObject fakeObject, @Nonnull final JsonGenerator jsonGenerator,
+                              @Nonnull final SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            for(final Field f : fakeObject.delegate.getClass().getDeclaredFields()) {
+                f.setAccessible(true);
+                try {
+                    jsonGenerator.writePOJOField(f.getName(), f.get(fakeObject.delegate));
+                } catch(@Nonnull final IllegalAccessException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+            jsonGenerator.writeEndObject();
         }
     }
 }
