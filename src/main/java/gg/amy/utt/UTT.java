@@ -134,8 +134,8 @@ public final class UTT {
             transformationTarget = Mapper.map(ctx, transformationTarget);
         }
 
-        if(transformationTarget instanceof byte[]) {
-            transformationTarget = new String((byte[]) transformationTarget);
+        if(transformationTarget instanceof byte[] bytes) {
+            transformationTarget = new String(bytes);
         }
 
         return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
