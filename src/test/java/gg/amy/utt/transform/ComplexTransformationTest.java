@@ -64,7 +64,7 @@ public class ComplexTransformationTest {
                     }
                 ]
                 """;
-        final var ctx = new TransformationContext(InputFormat.XML, OutputFormat.XML, null, null);
+        final var ctx = new TransformationContext(InputFormat.XML, OutputFormat.XML, null, null, null, false);
         final var parsed = new JsonTransformer().transformInput(ctx, input);
         final var csv = new CsvTransformer().transformOutput(ctx, parsed);
         assertEquals("""
@@ -76,8 +76,8 @@ public class ComplexTransformationTest {
 
     @Test
     public void testPathExtraction() {
-        assertEquals("\"value\"", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key", null), "{\"key\":\"value\"}"));
-        assertEquals("[\"value\"]", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key", null), "{\"key\":[\"value\"]}"));
-        assertEquals("\"value\"", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key/0", null), "{\"key\":[\"value\"]}"));
+        assertEquals("\"value\"", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key", null, null, false), "{\"key\":\"value\"}"));
+        assertEquals("[\"value\"]", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key", null, null, false), "{\"key\":[\"value\"]}"));
+        assertEquals("\"value\"", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key/0", null, null, false), "{\"key\":[\"value\"]}"));
     }
 }

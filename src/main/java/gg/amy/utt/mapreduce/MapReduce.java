@@ -1,4 +1,4 @@
-package gg.amy.utt.mapper;
+package gg.amy.utt.mapreduce;
 
 import gg.amy.utt.fake.Faker;
 import gg.amy.utt.transform.TransformationContext;
@@ -14,46 +14,71 @@ import java.util.Map.Entry;
  * @author amy
  * @since 3/4/22.
  */
-public final class Mapper {
+public final class MapReduce {
     private static final String LANGUAGE = "js";
     private static final String DEFAULT_SYM = "$";
     private static final String EXTRA_SYM = "_";
 
-    private Mapper() {
+    private MapReduce() {
+    }
+
+    public static Object map(@Nonnull final TransformationContext ctx, @Nonnull final Object transformationTarget) {
+        return apply(ctx, Mode.MAP, transformationTarget);
+    }
+
+    public static Object reduce(@Nonnull final TransformationContext ctx, @Nonnull final Object transformationTarget) {
+        return apply(ctx, Mode.REDUCE, transformationTarget);
     }
 
     @SuppressWarnings("ConstantConditions")
-    public static Object map(@Nonnull final TransformationContext ctx, @Nonnull final Object transformationTarget) {
+    public static Object apply(@Nonnull final TransformationContext ctx, @Nonnull final Mode mode, @Nonnull final Object transformationTarget) {
         try(@Nonnull final Context graal = Context.newBuilder(LANGUAGE)
                 .allowHostAccess(HostAccess.newBuilder()
                         .allowListAccess(true)
                         .allowArrayAccess(true)
+                        .allowMapAccess(true)
                         .build())
+                .allowExperimentalOptions(true)
+                .option("js.experimental-foreign-object-prototype", "true")
                 .build()) {
             final List<Value> results;
             final boolean isList = transformationTarget instanceof List;
+            final String function = switch(mode) {
+                case MAP -> ctx.mapper();
+                case REDUCE -> ctx.reducer();
+            };
             if(transformationTarget instanceof Map) {
                 graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
                 graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
-                results = List.of(graal.eval(LANGUAGE, ctx.mapper()));
+                results = List.of(graal.eval(LANGUAGE, function));
             } else if(transformationTarget instanceof List<?> list) {
-                results = list.stream().map(o -> {
-                    if(o instanceof Map || o instanceof List) {
-                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(o));
-                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(o));
-                    } else if(o instanceof String || o instanceof Number || o instanceof Boolean) {
-                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, o);
-                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, o);
-                    } else {
-                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(o));
-                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(o));
+                switch(mode) {
+                    case MAP -> results = list.stream().map(o -> {
+                        if(o instanceof Map || o instanceof List) {
+                            graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(o));
+                            graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(o));
+                        } else if(o instanceof String || o instanceof Number || o instanceof Boolean) {
+                            graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, o);
+                            graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, o);
+                        } else {
+                            graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(o));
+                            graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(o));
+                        }
+                        return graal.eval(LANGUAGE, function);
+                    }).toList();
+                    case REDUCE -> {
+                        System.err.println("REDUCING LIST AS MAP");
+                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
+                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
+                        results = List.of(graal.eval(LANGUAGE, function));
+                        System.err.println("REDUCED TO: " + results);
                     }
-                    return graal.eval(LANGUAGE, ctx.mapper());
-                }).toList();
+                    default -> throw new IllegalStateException("Unknown mode: " + mode);
+                }
             } else {
                 graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
                 graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
-                results = List.of(graal.eval(LANGUAGE, ctx.mapper()));
+                results = List.of(graal.eval(LANGUAGE, function));
             }
             final var cleanResults = results.stream().map(value -> {
                 if(value.isBoolean()) {
@@ -100,5 +125,10 @@ public final class Mapper {
         } else {
             return polyglot;
         }
+    }
+
+    public enum Mode {
+        MAP,
+        REDUCE,
     }
 }

@@ -8,10 +8,12 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import gg.amy.utt.fake.FakeList.Serializer;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
+import org.graalvm.polyglot.proxy.ProxyObject;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author amy
