@@ -12,4 +12,5 @@ public enum InputFormat {
     PROPERTIES,
     TOML,
     PLAIN,
+    BASE64,
 }

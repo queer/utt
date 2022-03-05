@@ -28,7 +28,8 @@ public final class UTT {
             InputFormat.YAML, new YamlTransformer(),
             InputFormat.PLAIN, new PlainTransformer(),
             InputFormat.PROPERTIES, new PropertiesTransformer(),
-            InputFormat.TOML, new TomlTransformer()
+            InputFormat.TOML, new TomlTransformer(),
+            InputFormat.BASE64, new Base64Transformer()
     );
     private static final Map<OutputFormat, Transformer> OUTPUT_TRANSFORMERS = Map.of(
             OutputFormat.CSV, new CsvTransformer(),
@@ -37,7 +38,8 @@ public final class UTT {
             OutputFormat.YAML, new YamlTransformer(),
             OutputFormat.PLAIN, new PlainTransformer(),
             OutputFormat.PROPERTIES, new PropertiesTransformer(),
-            OutputFormat.TOML, new TomlTransformer()
+            OutputFormat.TOML, new TomlTransformer(),
+            OutputFormat.BASE64, new Base64Transformer()
     );
 
     private UTT() {
@@ -94,7 +96,7 @@ public final class UTT {
                 }
             }
         }
-        return inputData.toString();
+        return inputData.toString().trim();
     }
 
     public static String runExtraction(@Nonnull final TransformationContext ctx, @Nonnull final String data) {
@@ -130,6 +132,10 @@ public final class UTT {
 
         if(ctx.mapper() != null) {
             transformationTarget = Mapper.map(ctx, transformationTarget);
+        }
+
+        if(transformationTarget instanceof byte[]) {
+            transformationTarget = new String((byte[]) transformationTarget);
         }
 
         return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
