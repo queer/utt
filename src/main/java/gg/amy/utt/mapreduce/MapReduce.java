@@ -67,11 +67,9 @@ public final class MapReduce {
                         return graal.eval(LANGUAGE, function);
                     }).toList();
                     case REDUCE -> {
-                        System.err.println("REDUCING LIST AS MAP");
                         graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
                         graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
                         results = List.of(graal.eval(LANGUAGE, function));
-                        System.err.println("REDUCED TO: " + results);
                     }
                     default -> throw new IllegalStateException("Unknown mode: " + mode);
                 }

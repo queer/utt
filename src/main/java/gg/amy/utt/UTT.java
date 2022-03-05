@@ -153,10 +153,7 @@ public final class UTT {
         }
 
         if(ctx.flatten() && transformationTarget instanceof List list) {
-            System.err.println("FLATTENING");
-            System.err.println(transformationTarget);
             transformationTarget = Faker.makeFake(flatten(list).toList(), true);
-            System.err.println(transformationTarget);
         }
 
         return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
