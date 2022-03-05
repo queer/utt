@@ -8,15 +8,23 @@ import org.graalvm.polyglot.Value;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author amy
  * @since 3/4/22.
  */
-public class Mapper {
+public final class Mapper {
+    private static final String LANGUAGE = "js";
+    private static final String DEFAULT_SYM = "$";
+    private static final String EXTRA_SYM = "_";
+
+    private Mapper() {
+    }
+
     @SuppressWarnings("ConstantConditions")
     public static Object map(@Nonnull final TransformationContext ctx, @Nonnull final Object transformationTarget) {
-        try(@Nonnull final Context graal = Context.newBuilder("js")
+        try(@Nonnull final Context graal = Context.newBuilder(LANGUAGE)
                 .allowHostAccess(HostAccess.newBuilder()
                         .allowListAccess(true)
                         .allowArrayAccess(true)
@@ -25,22 +33,27 @@ public class Mapper {
             final List<Value> results;
             final boolean isList = transformationTarget instanceof List;
             if(transformationTarget instanceof Map) {
-                graal.getBindings("js").putMember("$", Faker.makeFake(transformationTarget));
-                results = List.of(graal.eval("js", ctx.mapper()));
+                graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
+                graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
+                results = List.of(graal.eval(LANGUAGE, ctx.mapper()));
             } else if(transformationTarget instanceof List<?> list) {
                 results = list.stream().map(o -> {
                     if(o instanceof Map || o instanceof List) {
-                        graal.getBindings("js").putMember("$", Faker.makeFake(o));
+                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(o));
+                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(o));
                     } else if(o instanceof String || o instanceof Number || o instanceof Boolean) {
-                        graal.getBindings("js").putMember("$", o);
+                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, o);
+                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, o);
                     } else {
-                        graal.getBindings("js").putMember("$", Faker.makeFake(o));
+                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(o));
+                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(o));
                     }
-                    return graal.eval("js", ctx.mapper());
+                    return graal.eval(LANGUAGE, ctx.mapper());
                 }).toList();
             } else {
-                graal.getBindings("js").putMember("$", Faker.makeFake(transformationTarget));
-                results = List.of(graal.eval("js", ctx.mapper()));
+                graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
+                graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
+                results = List.of(graal.eval(LANGUAGE, ctx.mapper()));
             }
             final var cleanResults = results.stream().map(value -> {
                 if(value.isBoolean()) {
@@ -74,7 +87,7 @@ public class Mapper {
     private static Object fromPolyglot(@Nonnull final Object polyglot) {
         if(polyglot instanceof Map map) {
             final Map<Object, Object> out = new LinkedHashMap<>();
-            for(final Map.Entry<?, ?> entry : ((Map<?, ?>) map).entrySet()) {
+            for(final Entry<?, ?> entry : ((Map<?, ?>) map).entrySet()) {
                 out.put(fromPolyglot(entry.getKey()), fromPolyglot(entry.getValue()));
             }
             return out;
