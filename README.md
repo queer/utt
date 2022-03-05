@@ -17,4 +17,4 @@ $
 Formats may be supported for input-only or output-only. You can see all
 supported formats by running `utt` with no arguments.
 
-![](https://cdn.mewna.xyz/2022/03/05/4rqR6k7iejFWo.png)
+![](https://cdn.mewna.xyz/2022/03/05/OjAklvos9aQct.png)
