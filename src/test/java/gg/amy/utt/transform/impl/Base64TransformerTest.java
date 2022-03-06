@@ -15,7 +15,7 @@ public class Base64TransformerTest {
     @Test
     public void testIdentityWorks() {
         final var input = "asdf";
-        final var ctx = new TransformationContext(InputFormat.BASE64, OutputFormat.BASE64, null, null, null, false);
+        final var ctx = new TransformationContext(InputFormat.BASE64, OutputFormat.BASE64, null, null, false);
         final var out = new Base64Transformer().transformOutput(ctx, new Base64Transformer().transformInput(ctx, input));
         assertEquals(input, out);
     }
@@ -23,7 +23,7 @@ public class Base64TransformerTest {
     @Test
     public void testEncodeWorks() {
         final var input = "asdf";
-        final var ctx = new TransformationContext(InputFormat.BASE64, OutputFormat.BASE64, null, null, null, false);
+        final var ctx = new TransformationContext(InputFormat.BASE64, OutputFormat.BASE64, null, null, false);
         final var out = new Base64Transformer().transformOutput(ctx, input);
         assertEquals("YXNkZg==", out);
     }
@@ -31,7 +31,7 @@ public class Base64TransformerTest {
     @Test
     public void testDecodeWorks() {
         final var input = "YXNkZg==";
-        final var ctx = new TransformationContext(InputFormat.BASE64, OutputFormat.BASE64, null, null, null, false);
+        final var ctx = new TransformationContext(InputFormat.BASE64, OutputFormat.BASE64, null, null, false);
         final var out = new Base64Transformer().transformInput(ctx, input);
         assertEquals("asdf", new String((byte[]) out));
     }

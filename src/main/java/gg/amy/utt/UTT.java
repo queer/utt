@@ -4,7 +4,7 @@ import gg.amy.utt.data.InputFormat;
 import gg.amy.utt.data.OutputFormat;
 import gg.amy.utt.fake.FakeList;
 import gg.amy.utt.fake.Faker;
-import gg.amy.utt.mapreduce.MapReduce;
+import gg.amy.utt.mapper.Mapper;
 import gg.amy.utt.transform.TransformationContext;
 import gg.amy.utt.transform.Transformer;
 import gg.amy.utt.transform.impl.*;
@@ -62,7 +62,6 @@ public final class UTT {
         options.addOption("o", "output", true, "Format of output. All types: " + outputTypes);
         options.addOption("e", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
         options.addOption("M", "mapper", true, "A Javascript operation to run on each mapped object (ex. to map [1,2,3] to [2,4,6], use '$ * 2'. `$` or `_` is the current object). WARNING: THIS IS VERY SLOW");
-        options.addOption("R", "reducer", true, "A Javascript operation to run on the final object data before serialisation (TODO: EXAMPLE. `$` or `_` is the current object).  WARNING: THIS IS VERY SLOW");
         options.addOption("F", "flatten", false, "Forcibly flatten data before serialisation if possible");
 
         final var parser = new DefaultParser();
@@ -70,7 +69,6 @@ public final class UTT {
         final OutputFormat output;
         final String extractionPath;
         final String mapper;
-        final String reducer;
         final boolean flatten;
         try {
             final var cmd = parser.parse(options, args);
@@ -78,7 +76,6 @@ public final class UTT {
             output = OutputFormat.valueOf(cmd.getOptionValue("output").toUpperCase(Locale.ROOT));
             extractionPath = cmd.getOptionValue("extract");
             mapper = cmd.getOptionValue("mapper");
-            reducer = cmd.getOptionValue("reducer");
             flatten = cmd.hasOption("flatten");
         } catch(@Nonnull final Exception e) {
             final var helper = new HelpFormatter();
@@ -86,7 +83,7 @@ public final class UTT {
             return;
         }
 
-        final var ctx = new TransformationContext(input, output, extractionPath, mapper, reducer, flatten);
+        final var ctx = new TransformationContext(input, output, extractionPath, mapper, flatten);
 
         try {
             final var data = collectInput();
@@ -141,15 +138,11 @@ public final class UTT {
         }
 
         if(ctx.mapper() != null) {
-            transformationTarget = MapReduce.map(ctx, transformationTarget);
+            transformationTarget = Mapper.map(ctx, transformationTarget);
         }
 
         if(transformationTarget instanceof byte[] bytes) {
             transformationTarget = new String(bytes);
-        }
-
-        if(ctx.reducer() != null) {
-            transformationTarget = MapReduce.reduce(ctx, transformationTarget);
         }
 
         if(ctx.flatten() && transformationTarget instanceof List list) {

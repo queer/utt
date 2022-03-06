@@ -15,6 +15,5 @@ public record TransformationContext(
         @Nonnull OutputFormat output,
         @Nullable String extractionPath,
         @Nullable String mapper,
-        @Nullable String reducer,
         boolean flatten) {
 }

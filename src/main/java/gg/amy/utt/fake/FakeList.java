@@ -1,19 +1,16 @@
 package gg.amy.utt.fake;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import gg.amy.utt.fake.FakeList.Serializer;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyObject;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * @author amy
@@ -32,7 +29,7 @@ public record FakeList(List<Object> delegate) implements ProxyArray {
 
     @Override
     public void set(final long index, final Value value) {
-        delegate.set((int) index, value.asHostObject());
+        delegate.set((int) index, value.as(Object.class));
     }
 
     @Override
@@ -53,8 +50,8 @@ public record FakeList(List<Object> delegate) implements ProxyArray {
         public void serialize(@Nonnull final FakeList fakeList, @Nonnull final JsonGenerator jsonGenerator,
                               @Nonnull final SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartArray();
-            for (final Object o : fakeList.delegate) {
-                jsonGenerator.writePOJO(o);
+            for(final Object o : fakeList.delegate) {
+                jsonGenerator.writePOJO(Faker.makeFake(o));
             }
             jsonGenerator.writeEndArray();
         }

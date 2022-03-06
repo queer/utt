@@ -1,4 +1,4 @@
-package gg.amy.utt.mapreduce;
+package gg.amy.utt.mapper;
 
 import gg.amy.utt.fake.Faker;
 import gg.amy.utt.transform.TransformationContext;
@@ -14,20 +14,16 @@ import java.util.Map.Entry;
  * @author amy
  * @since 3/4/22.
  */
-public final class MapReduce {
+public final class Mapper {
     private static final String LANGUAGE = "js";
     private static final String DEFAULT_SYM = "$";
     private static final String EXTRA_SYM = "_";
 
-    private MapReduce() {
+    private Mapper() {
     }
 
     public static Object map(@Nonnull final TransformationContext ctx, @Nonnull final Object transformationTarget) {
         return apply(ctx, Mode.MAP, transformationTarget);
-    }
-
-    public static Object reduce(@Nonnull final TransformationContext ctx, @Nonnull final Object transformationTarget) {
-        return apply(ctx, Mode.REDUCE, transformationTarget);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -45,7 +41,6 @@ public final class MapReduce {
             final boolean isList = transformationTarget instanceof List;
             final String function = switch(mode) {
                 case MAP -> ctx.mapper();
-                case REDUCE -> ctx.reducer();
             };
             if(transformationTarget instanceof Map) {
                 graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
@@ -66,11 +61,6 @@ public final class MapReduce {
                         }
                         return graal.eval(LANGUAGE, function);
                     }).toList();
-                    case REDUCE -> {
-                        graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
-                        graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
-                        results = List.of(graal.eval(LANGUAGE, function));
-                    }
                     default -> throw new IllegalStateException("Unknown mode: " + mode);
                 }
             } else {
@@ -127,6 +117,5 @@ public final class MapReduce {
 
     public enum Mode {
         MAP,
-        REDUCE,
     }
 }

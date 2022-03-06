@@ -18,7 +18,7 @@ public class PropertiesTransformerTest {
                 key=value
                 key.nested=value
                 """;
-        final var ctx = new TransformationContext(InputFormat.PROPERTIES, OutputFormat.PROPERTIES, null, null, null, false);
+        final var ctx = new TransformationContext(InputFormat.PROPERTIES, OutputFormat.PROPERTIES, null, null, false);
         final var out = new PropertiesTransformer().transformOutput(ctx, new PropertiesTransformer().transformInput(ctx, input));
         assertEquals("""
                 key.=value
@@ -39,7 +39,7 @@ public class PropertiesTransformerTest {
                     </address>
                 </person>
                 """;
-        final var ctx = new TransformationContext(InputFormat.XML, OutputFormat.PROPERTIES, null, null, null, false);
+        final var ctx = new TransformationContext(InputFormat.XML, OutputFormat.PROPERTIES, null, null, false);
         final var out = new PropertiesTransformer().transformOutput(ctx, new XmlTransformer().transformInput(ctx, input));
         assertEquals("""
                 name=amy
