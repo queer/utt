@@ -51,7 +51,13 @@ public record FakeList(List<Object> delegate) implements ProxyArray {
                               @Nonnull final SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartArray();
             for(final Object o : fakeList.delegate) {
-                jsonGenerator.writePOJO(Faker.makeFake(o));
+                if(o instanceof String s) {
+                    jsonGenerator.writeString(s);
+                } else if(o instanceof Number number) {
+                    jsonGenerator.writeNumber(number.doubleValue());
+                } else {
+                    jsonGenerator.writePOJO(Faker.makeFake(o));
+                }
             }
             jsonGenerator.writeEndArray();
         }

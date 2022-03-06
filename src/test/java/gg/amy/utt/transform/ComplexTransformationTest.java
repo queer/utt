@@ -80,4 +80,10 @@ public class ComplexTransformationTest {
         assertEquals("[\"value\"]", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key", null, false), "{\"key\":[\"value\"]}"));
         assertEquals("\"value\"", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, "/key/0", null, false), "{\"key\":[\"value\"]}"));
     }
+
+    @Test
+    public void testFlattening() {
+        assertEquals("[1.0,2.0,3.0]", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, null, null, true), "[1, [2], [[3]]]"));
+        assertEquals("[1.0,2.0,3.0]", UTT.runExtraction(new TransformationContext(InputFormat.JSON, OutputFormat.JSON, null, "_.key", true), "{\"key\": [1, [2], [[3]]]}"));
+    }
 }

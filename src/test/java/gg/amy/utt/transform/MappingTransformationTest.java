@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author amy
  * @since 3/4/22.
  */
-public class MapReducingTransformationTest {
+public class MappingTransformationTest {
     @Test
     public void testMapperWorks() {
         final var ctx = new TransformationContext(InputFormat.JSON, OutputFormat.JSON, null, "$ * 2", false);

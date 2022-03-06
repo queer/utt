@@ -145,8 +145,13 @@ public final class UTT {
             transformationTarget = new String(bytes);
         }
 
-        if(ctx.flatten() && transformationTarget instanceof List list) {
-            transformationTarget = Faker.makeFake(flatten(list).toList(), true);
+        if(ctx.flatten() && transformationTarget instanceof List || transformationTarget instanceof FakeList) {
+            if(transformationTarget instanceof List list) {
+                transformationTarget = Faker.makeFake(flatten(list).toList(), true);
+            } else //noinspection ConstantConditions
+                if(transformationTarget instanceof FakeList list) {
+                transformationTarget = Faker.makeFake(flatten(list.delegate()).toList(), true);
+            }
         }
 
         return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
