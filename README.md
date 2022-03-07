@@ -17,7 +17,17 @@ $
 Formats may be supported for input-only or output-only. You can see all
 supported formats by running `utt` with no arguments.
 
-![](https://cdn.mewna.xyz/2022/03/05/OjAklvos9aQct.png)
+![](https://cdn.mewna.xyz/2022/03/08/j54Tp0yOY5xGw.png)
+
+## Getting it
+
+A UNIX-compatible binary is automatically released here: https://github.com/queer/utt/releases.
+This binary is just:
+```bash
+$ echo #!/usr/bin/env -S java -jar > utt && cat utt-*.jar >> utt && chmod +x utt
+```
+
+On Windows, run `mvn clean package` to create a JAR file in `target/`.
 
 ## Examples
 
