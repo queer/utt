@@ -19,6 +19,11 @@ supported formats by running `utt` with no arguments.
 
 ![](https://cdn.mewna.xyz/2022/03/08/j54Tp0yOY5xGw.png)
 
+Note: "universal" is a *big* claim, and I understand that utt isn't truly
+universal. However, it is an active goal to work on supporting more and more
+formats and transformations to make utt as close to truly universal as
+possible.
+
 ## Getting it
 
 A UNIX-compatible binary is automatically released here: https://github.com/queer/utt/releases.
