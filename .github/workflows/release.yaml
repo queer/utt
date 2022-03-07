@@ -1,0 +1,38 @@
+name: "Build and upload release"
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build_release:
+    name: build_release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repo"
+        uses: actions/checkout@v2
+      - name: "Install Java"
+        uses: "actions/setup-java@v1"
+        with:
+          java-version: "17"
+      - name: "Run build"
+        run: "mvn clean package"
+      - name: "Create release"
+        uses: "actions/create-release@v1"
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: "Upload JAR"
+        uses: "actions/upload-release-asset@v1"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "target/utt"
+          asset_name: "utt.jar"
+          asset_content_type: "application/java-archive"
