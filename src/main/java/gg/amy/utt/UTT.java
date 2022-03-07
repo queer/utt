@@ -58,8 +58,8 @@ public final class UTT {
         final var outputTypes = Arrays.stream(OutputFormat.values())
                 .map(s -> s.name().toLowerCase(Locale.ENGLISH))
                 .collect(Collectors.joining(", "));
-        options.addOption("i", "input", true, "Format of input. All types: " + inputTypes);
-        options.addOption("o", "output", true, "Format of output. All types: " + outputTypes);
+        options.addRequiredOption("i", "input", true, "Format of input. All types: " + inputTypes);
+        options.addRequiredOption("o", "output", true, "Format of output. All types: " + outputTypes);
         options.addOption("e", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
         options.addOption("M", "mapper", true, "A Javascript operation to run on each mapped object (ex. to map [1,2,3] to [2,4,6], use '$ * 2'. `$` or `_` is the current object). WARNING: THIS IS VERY SLOW");
         options.addOption("F", "flatten", false, "Forcibly flatten data before serialisation if possible");
@@ -79,7 +79,7 @@ public final class UTT {
             flatten = cmd.hasOption("flatten");
         } catch(@Nonnull final Exception e) {
             final var helper = new HelpFormatter();
-            helper.printHelp("utt", options);
+            helper.printHelp("utt -i <format> -o <format> [options]", options);
             return;
         }
 
