@@ -79,7 +79,7 @@ public final class UTT {
             flatten = cmd.hasOption("flatten");
         } catch(@Nonnull final Exception e) {
             final var helper = new HelpFormatter();
-            helper.printHelp("utt -i <format> -o <format> [options]", options);
+            helper.printHelp("utt", options, true);
             return;
         }
 
