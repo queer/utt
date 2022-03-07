@@ -69,7 +69,6 @@ public class CsvTransformer implements Transformer {
                     schemaBuilder.addColumn(key);
                 }
             }
-            // TODO: Other iterables?
         }
 
         final var schema = schemaBuilder.build().withHeader();

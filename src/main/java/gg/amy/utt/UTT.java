@@ -94,7 +94,6 @@ public final class UTT {
     }
 
     private static String collectInput() throws IOException {
-        // TODO: Streaming someday
         final var inputData = new StringBuilder();
         try(@Nonnull final var bis = new BufferedInputStream(System.in)) {
             try(@Nonnull final var scanner = new Scanner(bis)) {
