@@ -106,9 +106,15 @@ public final class UTT {
     }
 
     public static String runExtraction(@Nonnull final TransformationContext ctx, @Nonnull final String data) {
+        // Sanity checks
         if(!INPUT_TRANSFORMERS.containsKey(ctx.input())) {
             throw new IllegalArgumentException("Unknown input transformer: " + ctx.input());
         }
+        if(!OUTPUT_TRANSFORMERS.containsKey(ctx.output())) {
+            throw new IllegalArgumentException("Unknown output transformer: " + ctx.output());
+        }
+
+        // Load input
         Object transformationTarget = INPUT_TRANSFORMERS.get(ctx.input()).transformInput(ctx, data);
 
         // Extract from transformed input as needed
@@ -132,10 +138,6 @@ public final class UTT {
         }
 
         // Transform output
-        if(!OUTPUT_TRANSFORMERS.containsKey(ctx.output())) {
-            throw new IllegalArgumentException("Unknown output transformer: " + ctx.output());
-        }
-
         if(ctx.mapper() != null) {
             transformationTarget = Mapper.map(ctx, transformationTarget);
         }
@@ -144,6 +146,7 @@ public final class UTT {
             transformationTarget = new String(bytes);
         }
 
+        // Flatten where possible
         if(ctx.flatten() && transformationTarget instanceof List || transformationTarget instanceof FakeList) {
             if(transformationTarget instanceof List list) {
                 transformationTarget = Faker.makeFake(flatten(list).toList(), true);
