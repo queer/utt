@@ -43,9 +43,9 @@ public class CsvTransformer implements Transformer {
             // We can use this to extract a schema from the first level.
 
             // If `input` is a map, extract keys directly.
-            if(input instanceof Map) {
+            if(input instanceof Map map) {
                 // HACK: Assume that this is an ordered map
-                final var keys = ((Map<?, ?>) input).keySet().stream().toList();
+                final var keys = map.keySet().stream().toList();
                 for(int i = 0; i < keys.size(); i++) {
                     final var k = keys.get(i);
                     if(!(k instanceof final String key)) {
