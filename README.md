@@ -29,7 +29,7 @@ possible.
 A UNIX-compatible binary is automatically released here: https://github.com/queer/utt/releases.
 This binary is just:
 ```bash
-$ echo #!/usr/bin/env -S java -jar > utt && cat utt-*.jar >> utt && chmod +x utt
+$ echo "#!/usr/bin/env -S java -jar" > utt && cat utt-*.jar >> utt && chmod +x utt
 ```
 
 On Windows, run `mvn clean package` to create a JAR file in `target/`.
