@@ -18,3 +18,50 @@ Formats may be supported for input-only or output-only. You can see all
 supported formats by running `utt` with no arguments.
 
 ![](https://cdn.mewna.xyz/2022/03/05/OjAklvos9aQct.png)
+
+## Examples
+
+### Convert from JSON to YAML
+
+```bash
+$ echo '{"key": [1, 2, 3]}' | utt -i json -o yaml
+---
+key:
+- 1
+- 2
+- 3
+
+$
+```
+
+### Extract keys from a JSON object
+
+```bash
+$ echo '[{"key": 1}, {"key": 2}, {"key": 3}]' | utt -i json -o json -M '_.key'
+[1.0,2.0,3.0]
+$
+```
+
+### Flatten a list
+
+```bash
+$ echo '[[1], [2], [3]]' | utt -i json -o json -F
+[1.0,2.0,3.0]
+$
+```
+
+### Encode text with base64
+
+```bash
+$ echo "this is a test" | utt -i plain -o base64
+dGhpcyBpcyBhIHRlc3Q=
+$
+```
+
+### Extract inner values and flatten
+
+```bash
+$ echo '{"key": [1, [2], [[3]]]}' | utt -i json -o json -M '_.key' -F
+[1.0,2.0,3.0]
+$ 
+```
