@@ -58,9 +58,23 @@ public final class UTT {
         final var outputTypes = Arrays.stream(OutputFormat.values())
                 .map(s -> s.name().toLowerCase(Locale.ENGLISH))
                 .collect(Collectors.joining(", "));
+
+        /*
+         * Conventions:
+         * ------------
+         * - As few required args as possible
+         * - Flags transforming the input or output data are lowercase, whereas
+         *   flags that operate on the intermediate representation are
+         *   uppercase.
+         * - Flags must have descriptive names and descriptions, so that the
+         *   generated help message is useful.
+         */
+
         options.addRequiredOption("i", "input", true, "Format of input. All types: " + inputTypes);
         options.addRequiredOption("o", "output", true, "Format of output. All types: " + outputTypes);
+
         options.addOption("e", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
+
         options.addOption("M", "mapper", true, "A Javascript operation to run on each mapped object (ex. to map [1,2,3] to [2,4,6], use '$ * 2'. `$` or `_` is the current object). WARNING: THIS IS VERY SLOW");
         options.addOption("F", "flatten", false, "Forcibly flatten data before serialisation if possible");
 

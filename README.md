@@ -17,6 +17,16 @@ $
 Formats may be supported for input-only or output-only. You can see all
 supported formats by running `utt` with no arguments.
 
+At the time of writing, supported formats are:
+- JSON
+- XML
+- CSV
+- YAML
+- Java Properties
+- TOML
+- Base 64
+- Plain Text
+
 ![](https://cdn.mewna.xyz/2022/03/08/j54Tp0yOY5xGw.png)
 
 Note: "universal" is a *big* claim, and I understand that utt isn't truly
