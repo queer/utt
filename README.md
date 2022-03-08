@@ -58,6 +58,10 @@ accepts as input and output formats. For example, utt can only output to CSV by
 Similarly, utt's mapping functionality relies on the GraalVM Polyglot API,
 which has a high (~500ms) startup time.
 
+While [pandoc](https://pandoc.org/) focuses more on converting between human
+formats like markdown and HTML, utt is more focused on converting between data
+formats understood by computers.
+
 ## Examples
 
 ### Convert from JSON to YAML
