@@ -13,4 +13,5 @@ public enum OutputFormat {
     TOML,
     PLAIN,
     BASE64,
+    ROT13,
 }

@@ -42,7 +42,8 @@ public final class UTT {
             OutputFormat.PLAIN, new PlainTransformer(),
             OutputFormat.PROPERTIES, new PropertiesTransformer(),
             OutputFormat.TOML, new TomlTransformer(),
-            OutputFormat.BASE64, new Base64Transformer()
+            OutputFormat.BASE64, new Base64Transformer(),
+            OutputFormat.ROT13, new Rot13Transformer()
     );
 
     private UTT() {
