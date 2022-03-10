@@ -26,8 +26,9 @@ At the time of writing, supported formats are:
 - TOML
 - Base 64
 - Plain Text
+- ROT13
 
-![](https://cdn.mewna.xyz/2022/03/08/j54Tp0yOY5xGw.png)
+![](https://cdn.mewna.xyz/2022/03/11/SYS165Od1u6eV.png)
 
 Note: "universal" is a *big* claim, and I understand that utt isn't truly
 universal. However, it is an active goal to work on supporting more and more
