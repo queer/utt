@@ -1,0 +1,21 @@
+name: Run all tests
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "mistress"
+
+jobs:
+  run-tests:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout Repo"
+        uses: "actions/checkout@v2"
+      - name: "Install Java"
+        uses: "actions/setup-java@v1"
+        with:
+          java-version: "17"
+      - name: "Run tests"
+        run: "mvn clean test"
