@@ -12,10 +12,24 @@ public final class Faker {
     private Faker() {
     }
 
+    /**
+     * {@link #makeFake(Object, boolean)}
+     */
     public static Object makeFake(@Nonnull final Object object) {
         return makeFake(object, false);
     }
 
+    /**
+     * Converts the input object into a fake object. A fake object is a wrapper
+     * around some POJO that can be safely accessed inside of a GraalVM
+     * Polyglot {@link org.graalvm.polyglot.Context}. This method will convert
+     * normal POJOs into fake objects, but will pass through fake objects
+     * as-is.
+     *
+     * @param object    The object to convert to a fake object.
+     * @param noObjects Whether non-list/map objects should be converted.
+     * @return A new, potentially-fake object.
+     */
     @SuppressWarnings({"SameParameterValue", "unchecked"})
     public static Object makeFake(@Nonnull final Object object, final boolean noObjects) {
         if(object instanceof Map map) {

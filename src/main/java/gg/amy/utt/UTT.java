@@ -112,6 +112,8 @@ public final class UTT {
         try(@Nonnull final var bis = new BufferedInputStream(System.in)) {
             try(@Nonnull final var scanner = new Scanner(bis)) {
                 while(scanner.hasNextLine()) {
+                    // Process multiline input with newlines so that ex. CSV,
+                    // YAML, ... input work.
                     inputData.append(scanner.nextLine()).append('\n');
                 }
             }
@@ -120,7 +122,7 @@ public final class UTT {
     }
 
     public static String runExtraction(@Nonnull final TransformationContext ctx, @Nonnull final String data) {
-        // Sanity checks
+        // Sanity checks.
         if(!INPUT_TRANSFORMERS.containsKey(ctx.input())) {
             throw new IllegalArgumentException("Unknown input transformer: " + ctx.input());
         }
@@ -128,10 +130,10 @@ public final class UTT {
             throw new IllegalArgumentException("Unknown output transformer: " + ctx.output());
         }
 
-        // Load input
+        // Load input.
         Object transformationTarget = INPUT_TRANSFORMERS.get(ctx.input()).transformInput(ctx, data);
 
-        // Extract from transformed input as needed
+        // Extract from transformed input as needed.
         if(ctx.extractionPath() != null && !ctx.extractionPath().isEmpty() && !ctx.extractionPath().equals("/")) {
             if(!ctx.extractionPath().startsWith("/")) {
                 throw new IllegalArgumentException("--extract must start with /");
@@ -151,16 +153,17 @@ public final class UTT {
             }
         }
 
-        // Transform output
+        // Map as needed.
         if(ctx.mapper() != null) {
             transformationTarget = Mapper.map(ctx, transformationTarget);
         }
 
+        // If we mapped into a byte[] accidentally, flatten it into a string.
         if(transformationTarget instanceof byte[] bytes) {
             transformationTarget = new String(bytes);
         }
 
-        // Flatten where possible
+        // Flatten where possible.
         if(ctx.flatten() && transformationTarget instanceof List || transformationTarget instanceof FakeList) {
             if(transformationTarget instanceof List list) {
                 transformationTarget = Faker.makeFake(flatten(list).toList(), true);
@@ -170,6 +173,7 @@ public final class UTT {
             }
         }
 
+        // Transform output.
         return OUTPUT_TRANSFORMERS.get(ctx.output()).transformOutput(ctx, transformationTarget);
     }
 
