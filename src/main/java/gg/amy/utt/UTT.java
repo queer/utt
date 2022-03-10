@@ -73,8 +73,7 @@ public final class UTT {
         options.addRequiredOption("i", "input", true, "Format of input. All types: " + inputTypes);
         options.addRequiredOption("o", "output", true, "Format of output. All types: " + outputTypes);
 
-        options.addOption("e", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
-
+        options.addOption("E", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
         options.addOption("M", "mapper", true, "A Javascript operation to run on each mapped object (ex. to map [1,2,3] to [2,4,6], use '$ * 2'. `$` or `_` is the current object). WARNING: THIS IS VERY SLOW");
         options.addOption("F", "flatten", false, "Forcibly flatten data before serialisation if possible");
 
