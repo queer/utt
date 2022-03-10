@@ -30,23 +30,33 @@ public final class Mapper {
     public static Object apply(@Nonnull final TransformationContext ctx, @Nonnull final Mode mode, @Nonnull final Object transformationTarget) {
         try(@Nonnull final Context graal = Context.newBuilder(LANGUAGE)
                 .allowHostAccess(HostAccess.newBuilder()
+                        // Needed for interacting with fake objects
                         .allowListAccess(true)
                         .allowArrayAccess(true)
                         .allowMapAccess(true)
                         .build())
                 .allowExperimentalOptions(true)
+                // Needed for some property access bullshit, I think?
+                // TODO: Remember why this is needed
                 .option("js.experimental-foreign-object-prototype", "true")
                 .build()) {
             final List<Value> results;
             final boolean isList = transformationTarget instanceof List;
+            @SuppressWarnings("SwitchStatementWithTooFewBranches")
             final String function = switch(mode) {
                 case MAP -> ctx.mapper();
             };
             if(transformationTarget instanceof Map) {
+                // If the target is a map, we can just operate on it directly,
+                // as though it were a JS object.
                 graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
                 graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
                 results = List.of(graal.eval(LANGUAGE, function));
             } else if(transformationTarget instanceof List<?> list) {
+                // If the target is a list, we need to make a fake object for each
+                // item in the list, and then operate on each object.
+
+                //noinspection SwitchStatementWithTooFewBranches
                 switch(mode) {
                     case MAP -> results = list.stream().map(o -> {
                         if(o instanceof Map || o instanceof List) {
@@ -64,10 +74,13 @@ public final class Mapper {
                     default -> throw new IllegalStateException("Unknown mode: " + mode);
                 }
             } else {
+                // Otherwise, just make a fake object and operate on it.
                 graal.getBindings(LANGUAGE).putMember(DEFAULT_SYM, Faker.makeFake(transformationTarget));
                 graal.getBindings(LANGUAGE).putMember(EXTRA_SYM, Faker.makeFake(transformationTarget));
                 results = List.of(graal.eval(LANGUAGE, function));
             }
+            // Map results out of polyglot types so that they're safe for
+            // serialisation.
             final var cleanResults = results.stream().map(value -> {
                 if(value.isBoolean()) {
                     return value.asBoolean();
@@ -89,6 +102,8 @@ public final class Mapper {
                     throw new IllegalArgumentException("Unsupported result type: " + value.getClass().getName());
                 }
             }).toList();
+
+            // Recursively clean up the results.
             if(isList) {
                 return fromPolyglot(cleanResults);
             } else {
