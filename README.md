@@ -28,7 +28,7 @@ At the time of writing, supported formats are:
 - Plain Text
 - ROT13
 
-![](https://cdn.mewna.xyz/2022/03/11/SYS165Od1u6eV.png)
+![](https://cdn.mewna.xyz/2022/03/12/nlJHwWjsqe8rg.png)
 
 Note: "universal" is a *big* claim, and I understand that utt isn't truly
 universal. However, it is an active goal to work on supporting more and more
