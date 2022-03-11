@@ -15,7 +15,7 @@ public class Rot13TransformerTest {
     @Test
     public void testRot13Transform() {
         final var input = "This is a test.";
-        final var ctx = new TransformationContext(InputFormat.PLAIN, OutputFormat.ROT13, null, null, false);
+        final var ctx = new TransformationContext(InputFormat.PLAIN, OutputFormat.ROT13, null, null, false, false);
         final var out = new Rot13Transformer().transformOutput(ctx, input);
         assertEquals("Guvf vf n grfg.", out);
     }

@@ -28,7 +28,11 @@ public class PropertiesTransformer implements Transformer {
     @Override
     public String transformOutput(@Nonnull final TransformationContext ctx, @Nonnull final Object input) {
         try {
-            return MAPPER.writeValueAsString(input);
+            var writer = MAPPER.writerFor(input.getClass());
+            if(ctx.pretty()) {
+                writer = writer.withDefaultPrettyPrinter();
+            }
+            return writer.writeValueAsString(input);
         } catch(@Nonnull final JsonProcessingException e) {
             throw new IllegalStateException(e);
         }

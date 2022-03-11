@@ -75,8 +75,9 @@ public final class UTT {
         options.addRequiredOption("o", "output", true, "Format of output. All types: " + outputTypes);
 
         options.addOption("E", "extract", true, "A http://jsonpatch.com/ path to extract from the input (ex. /foo/bar)");
-        options.addOption("M", "mapper", true, "A Javascript operation to run on each mapped object (ex. to map [1,2,3] to [2,4,6], use '$ * 2'. `$` or `_` is the current object). WARNING: THIS IS VERY SLOW");
         options.addOption("F", "flatten", false, "Forcibly flatten data before serialisation if possible");
+        options.addOption("M", "mapper", true, "A Javascript operation to run on each mapped object (ex. to map [1,2,3] to [2,4,6], use '$ * 2'. `$` or `_` is the current object). WARNING: THIS IS VERY SLOW");
+        options.addOption("P", "pretty", false, "Pretty-print the output");
 
         final var parser = new DefaultParser();
         final InputFormat input;
@@ -84,6 +85,7 @@ public final class UTT {
         final String extractionPath;
         final String mapper;
         final boolean flatten;
+        final boolean pretty;
         try {
             final var cmd = parser.parse(options, args);
             input = InputFormat.valueOf(cmd.getOptionValue("input").toUpperCase(Locale.ROOT));
@@ -91,13 +93,14 @@ public final class UTT {
             extractionPath = cmd.getOptionValue("extract");
             mapper = cmd.getOptionValue("mapper");
             flatten = cmd.hasOption("flatten");
+            pretty = cmd.hasOption("pretty");
         } catch(@Nonnull final Exception e) {
             final var helper = new HelpFormatter();
             helper.printHelp("utt", options, true);
             return;
         }
 
-        final var ctx = new TransformationContext(input, output, extractionPath, mapper, flatten);
+        final var ctx = new TransformationContext(input, output, extractionPath, mapper, flatten, pretty);
 
         try {
             final var data = collectInput();

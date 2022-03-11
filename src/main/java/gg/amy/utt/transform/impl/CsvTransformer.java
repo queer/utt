@@ -82,7 +82,11 @@ public class CsvTransformer implements Transformer {
             } else {
                 out = input;
             }
-            return MAPPER.writerFor(input.getClass()).with(schema).writeValueAsString(out);
+            var writer = MAPPER.writerFor(input.getClass());
+            if(ctx.pretty()) {
+                writer = writer.withDefaultPrettyPrinter();
+            }
+            return writer.with(schema).writeValueAsString(out);
         } catch(final JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
