@@ -32,7 +32,8 @@ public final class UTT {
             InputFormat.PLAIN, new PlainTransformer(),
             InputFormat.PROPERTIES, new PropertiesTransformer(),
             InputFormat.TOML, new TomlTransformer(),
-            InputFormat.BASE64, new Base64Transformer()
+            InputFormat.BASE64, new Base64Transformer(),
+            InputFormat.PYTHON, new PythonTransformer()
     );
     private static final Map<OutputFormat, Transformer> OUTPUT_TRANSFORMERS = Map.of(
             OutputFormat.CSV, new CsvTransformer(),

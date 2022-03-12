@@ -13,4 +13,5 @@ public enum InputFormat {
     TOML,
     PLAIN,
     BASE64,
+    PYTHON,
 }
