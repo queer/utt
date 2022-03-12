@@ -48,7 +48,8 @@ On Windows, run `mvn clean package` to create a JAR file in `target/`.
 ### Why is it so big???
 
 Unfortunately, supporting everything under the sun requires dragging in a
-pretty ridiculous number of packages 3:
+pretty ridiculous set of libraries. For example, to support Python dict
+notation, utt drags in an entire Python implementation via `jython-standalone`.
 
 ## What and why
 
