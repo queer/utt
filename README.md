@@ -45,6 +45,11 @@ $ echo "#!/usr/bin/env -S java -jar" > utt && cat utt-*.jar >> utt && chmod +x u
 
 On Windows, run `mvn clean package` to create a JAR file in `target/`.
 
+### Why is it so big???
+
+Unfortunately, supporting everything under the sun requires dragging in a
+pretty ridiculous number of packages 3:
+
 ## What and why
 
 utt (case-sensitive) is a tool for converting between textual data formats. utt
