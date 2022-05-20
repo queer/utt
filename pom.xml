@@ -86,7 +86,7 @@
         <dependency>
             <groupId>org.graalvm.truffle</groupId>
             <artifactId>truffle-api</artifactId>
-            <version>22.1.0</version>
+            <version>22.1.0.1</version>
         </dependency>
 
         <dependency>
