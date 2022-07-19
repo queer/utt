@@ -38,7 +38,7 @@ public final class Mapper {
                 .allowExperimentalOptions(true)
                 // Needed for some property access bullshit, I think?
                 // TODO: Remember why this is needed
-                .option("js.experimental-foreign-object-prototype", "true")
+                .option("js.foreign-object-prototype", "true")
                 .build()) {
             final List<Value> results;
             final boolean isList = transformationTarget instanceof List;
