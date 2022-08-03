@@ -10,6 +10,7 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ import java.util.List;
  * @since 3/4/22.
  */
 @JsonSerialize(using = Serializer.class)
-public record FakeList(List<Object> delegate) implements ProxyArray {
+public record FakeList(List<Object> delegate) implements ProxyArray, Iterable<Object> {
     public FakeList(@Nonnull final List<Object> delegate) {
         this.delegate = delegate;
     }
@@ -35,6 +36,24 @@ public record FakeList(List<Object> delegate) implements ProxyArray {
     @Override
     public long getSize() {
         return delegate.size();
+    }
+
+    @Nonnull
+    @Override
+    public Iterator<Object> iterator() {
+        return new Iterator<>() {
+            private final Iterator<Object> iterator = delegate.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Object next() {
+                return iterator.next();
+            }
+        };
     }
 
     public static final class Serializer extends StdSerializer<FakeList> {

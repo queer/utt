@@ -57,8 +57,8 @@ public class CsvTransformer implements Transformer {
                 // If `input` is a list, extract keys from all maps
                 final var keys = new LinkedHashSet<String>();
                 for(final var o : (Iterable<?>) input) {
-                    if(o instanceof Map) {
-                        ((Map<?, ?>) o).keySet()
+                    if(o instanceof Map<?, ?> map) {
+                        map.keySet()
                                 .stream()
                                 .filter(k -> k instanceof String)
                                 .map(k -> (String) k)
